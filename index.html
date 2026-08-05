@@ -2,53 +2,222 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Control de asistencia · Adidas</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Toma de asistencia · Adidas México</title>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; padding: 60px 24px; background: #111; color: #fff; min-height: 100vh; margin: 0; }
-  h1 { font-size: 22px; margin-bottom: 12px; }
-  p { color: #bbb; font-size: 14px; line-height: 1.5; }
-  .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 30px auto; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .error { color: #f88; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+ background:#fff;color:#111;min-height:100vh;display:flex;align-items:center;
+ justify-content:center;padding:28px 20px;-webkit-font-smoothing:antialiased}
+.wrap{width:100%;max-width:400px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:2.5px;color:#9a9a9a;
+ text-transform:uppercase;margin-bottom:10px}
+h1{font-size:27px;font-weight:700;letter-spacing:-0.4px;line-height:1.15;margin-bottom:7px}
+.sub{font-size:14px;color:#767676;margin-bottom:30px}
+.rule{width:44px;height:3px;background:#111;margin-bottom:30px}
+
+.panel{border:1.5px solid #e4e4e4;border-radius:14px;padding:30px 22px;text-align:center}
+
+.gauge{width:70px;height:70px;margin:0 auto 20px;position:relative}
+.gauge svg{transform:rotate(-90deg)}
+.gauge circle{fill:none;stroke-width:5;stroke-linecap:round}
+.gtrack{stroke:#eee}
+.gbar{stroke:#111;transition:stroke-dashoffset .55s cubic-bezier(.4,0,.2,1)}
+.gnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+ font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.gnum small{font-size:10px;font-weight:600;color:#999;margin-left:1px}
+
+.ptitle{font-size:17px;font-weight:650;margin-bottom:6px}
+.pdesc{font-size:13px;color:#8a8a8a;line-height:1.5}
+
+.store{font-size:21px;font-weight:700;letter-spacing:-0.3px;line-height:1.25;margin:4px 0 8px}
+.meta{font-size:12px;color:#999;font-variant-numeric:tabular-nums}
+
+.mark{width:60px;height:60px;margin:0 auto 20px;border-radius:50%;background:#111;
+ display:flex;align-items:center;justify-content:center;color:#fff;font-size:27px;
+ animation:pop .3s cubic-bezier(.34,1.56,.64,1)}
+.mark.warn{background:#fff;border:2.5px solid #111;color:#111;font-size:30px}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+.opts{display:flex;flex-direction:column;gap:11px;margin-top:22px}
+.opt{width:100%;padding:17px 18px;background:#fff;border:1.5px solid #111;border-radius:11px;
+ font-family:inherit;font-size:15px;font-weight:650;color:#111;cursor:pointer;text-align:left;
+ display:flex;justify-content:space-between;align-items:center;gap:12px;line-height:1.3}
+.opt:active{background:#111;color:#fff}
+.opt .d{font-size:12px;font-weight:600;color:#9a9a9a;font-variant-numeric:tabular-nums;flex-shrink:0}
+.opt:active .d{color:#bbb}
+
+.btn{display:inline-block;margin-top:20px;padding:15px 34px;background:#111;color:#fff;
+ border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:650;
+ cursor:pointer;text-decoration:none}
+.foot{font-size:11px;color:#c0c0c0;text-align:center;margin-top:18px;line-height:1.5}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<h1>Obteniendo tu ubicación…</h1>
-<p id="status">Toca <b>Permitir</b> cuando el navegador te lo pida.</p>
-<div class="spinner" id="spinner"></div>
+<div class="wrap">
+  <div class="eyebrow">Adidas México</div>
+  <h1>Toma de asistencia</h1>
+  <div class="sub">Validador de ubicación</div>
+  <div class="rule"></div>
+  <div class="panel" id="panel">
+    <div class="gauge">
+      <svg width="70" height="70"><circle class="gtrack" cx="35" cy="35" r="31"></circle>
+      <circle class="gbar" id="bar" cx="35" cy="35" r="31"
+        stroke-dasharray="195" stroke-dashoffset="195"></circle></svg>
+      <div class="gnum" id="acc">--<small>m</small></div>
+    </div>
+    <div class="ptitle">Buscando tu ubicación</div>
+    <div class="pdesc">Toca <b>Permitir</b> si el navegador te lo pide. Mantente cerca de la entrada de la tienda.</div>
+  </div>
+  <div class="foot">Tu ubicación se usa únicamente para validar tu asistencia.</div>
+</div>
+
 <script>
-  const FORM_BASE = "https://forms.office.com/Pages/ResponsePage.aspx?id=IrL-OyzkNUWqzupvd1E2mz0FagzEhKVGlbPbrPLqBZNUQkgyQUEzVk8yRzNYMURDSEIzTTkzR0MwWi4u";
-  const ID_LAT = "rd1777c06b8b647d39e742ed849c0a570";
-  const ID_LNG = "r93611f5cd0924620abd72efdf7c9cff0";
+var FORM="https://forms.office.com/Pages/ResponsePage.aspx?id=IrL-OyzkNUWqzupvd1E2mz0FagzEhKVGlbPbrPLqBZNUQkgyQUEzVk8yRzNYMURDSEIzTTkzR0MwWi4u";
+var Q_TIENDA="r732cc4f7f720412d92d63937052de829", Q_LAT="rd1777c06b8b647d39e742ed849c0a570", Q_LNG="r93611f5cd0924620abd72efdf7c9cff0";
+var MARGEN=45, ACC_MAX=60, VENTANA=6000;
 
-  if (!navigator.geolocation) {
-    showError("Este navegador no soporta GPS. Abre el link en un celular moderno.");
-  } else {
-    navigator.geolocation.getCurrentPosition(
-      function(pos) {
-        var lat = pos.coords.latitude.toFixed(6);
-        var lng = pos.coords.longitude.toFixed(6);
-        var url = FORM_BASE + "&" + ID_LAT + "=" + lat + "&" + ID_LNG + "=" + lng;
-        window.location.href = url;
-      },
-      function(err) {
-        var msg = "No se pudo obtener la ubicación. ";
-        if (err.code === 1) msg += "Permiso denegado. Ve a configuración del navegador y habilita ubicación.";
-        else if (err.code === 2) msg += "GPS no disponible. Sal a un lugar con mejor señal.";
-        else if (err.code === 3) msg += "El GPS tardó demasiado. Vuelve a intentar.";
-        showError(msg);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  }
+var T=[
+{n:"BC MADERO",la:19.433458,lo:-99.136472,r:180},
+{n:"BC MASARYK",la:19.432151,lo:-99.195582,r:150},
+{n:"BCS ANDARES",la:20.710938,lo:-103.412174,r:150},
+{n:"BCS ATIZAPÁN",la:19.549662,lo:-99.274211,r:150},
+{n:"BCS CIUDAD JARDIN",la:19.424969,lo:-99.023676,r:150},
+{n:"BCS FORUM BUENAVISTA",la:19.449208,lo:-99.151893,r:120},
+{n:"BCS FORUM TLAQUEPAQUE",la:20.647857,lo:-103.320716,r:130},
+{n:"BCS GALERIAS MONTERREY",la:25.681348,lo:-100.354569,r:200},
+{n:"BCS INTERLOMAS",la:19.399289,lo:-99.283294,r:130},
+{n:"BCS MITIKAH",la:19.359221,lo:-99.167637,r:200},
+{n:"BCS PASEO ACOXPA",la:19.298222,lo:-99.137404,r:200},
+{n:"BCS PERISUR",la:19.303893,lo:-99.190274,r:50},
+{n:"BCS SAN AGUSTIN",la:25.652199,lo:-100.338125,r:120},
+{n:"BCS SANTA FE",la:19.361009,lo:-99.275285,r:120},
+{n:"BCS SATÉLITE",la:19.510460,lo:-99.234245,r:150},
+{n:"BCS TEPEYAC",la:19.477834,lo:-99.100753,r:200},
+{n:"BCS TEZONTLE",la:19.385288,lo:-99.081666,r:120},
+{n:"BCS TOREO",la:19.454607,lo:-99.219043,r:100},
+{n:"FO ARAGON",la:19.532018,lo:-99.025599,r:200},
+{n:"FO CENTRO HISTORICO",la:19.432423,lo:-99.137426,r:200},
+{n:"FO CENTRO HISTÓRICO MONTERREY",la:25.667778,lo:-100.315368,r:200},
+{n:"FO CUERNAVACA",la:18.925563,lo:-99.196993,r:200},
+{n:"FO ECATEPEC",la:19.574636,lo:-99.043021,r:200},
+{n:"FO EXPLANADA PUEBLA",la:19.074052,lo:-98.276384,r:200},
+{n:"FO GUSTAVO BAZ",la:19.509347,lo:-99.219751,r:200},
+{n:"FO INSURGENTES 2",la:19.293187,lo:-99.178873,r:200},
+{n:"FO LEON",la:21.090236,lo:-101.617375,r:200},
+{n:"FO LERMA",la:19.281961,lo:-99.502021,r:200},
+{n:"FO OCEANIA",la:19.439057,lo:-99.094509,r:200},
+{n:"FO PUNTA NORTE",la:19.602462,lo:-99.200938,r:200},
+{n:"FO PUNTO SUR (GDL)",la:20.569201,lo:-103.455326,r:200},
+{n:"FO RIVIERA MAYA",la:20.984604,lo:-86.860915,r:200},
+{n:"FO SAN LUIS POTOSI",la:22.138175,lo:-101.001240,r:200},
+{n:"FO. PUEBLA PREMIER",la:19.132608,lo:-98.266868,r:200},
+{n:"FOES LAS PLAZAS  GDL",la:20.528516,lo:-103.484409,r:200},
+{n:"FTW ANTARA",la:19.439377,lo:-99.203025,r:200},
+{n:"MBFO IZCALLI",la:19.649100,lo:-99.206636,r:200},
+{n:"MBFO LAS PLAZAS CANCÚN",la:21.162147,lo:-86.851535,r:200},
+{n:"MBFO METEPEC",la:19.260269,lo:-99.629867,r:200},
+{n:"MBFO PLAZA AEROPUERTO",la:19.421417,lo:-99.096605,r:200},
+{n:"MBFO PLAZA CENTRAL",la:19.385389,lo:-99.091886,r:200},
+{n:"MBFO QUERETARO",la:20.575001,lo:-100.462538,r:200},
+{n:"MBFO ZARAGOZA",la:19.415703,lo:-99.077561,r:200},
+{n:"OCS ADIDAS ORIGINALS PREMIER",la:19.135609,lo:-98.266868,r:200},
+{n:"OCS ARTZ PEDREGAL",la:19.313992,lo:-99.219506,r:200},
+{n:"OCS COSMOPOL",la:19.632099,lo:-99.125182,r:200},
+{n:"OCS DELTA",la:19.402467,lo:-99.153507,r:120},
+{n:"OCS FASHION DRIVE",la:25.681259,lo:-100.354953,r:200},
+{n:"OCS MUNDO E",la:19.524543,lo:-99.228232,r:200},
+{n:"OCS OASIS COYOACÁN",la:19.344995,lo:-99.179205,r:200},
+{n:"OCS PARQUE ANTENAS",la:19.314958,lo:-99.077559,r:200},
+{n:"OCS PERISUR",la:19.302967,lo:-99.189072,r:150},
+{n:"OCS PORTAL SAN ANGEL",la:19.361064,lo:-99.190463,r:120},
+{n:"OCS REFORMA",la:19.428835,lo:-99.161691,r:200},
+{n:"OCS SANTA FE",la:19.361607,lo:-99.273656,r:120},
+{n:"OFS CONDESA",la:19.412257,lo:-99.175043,r:100},
+{n:"Oficina",la:19.339701,lo:-99.191143,r:180}
+];
 
-  function showError(msg) {
-    document.getElementById("spinner").style.display = "none";
-    var s = document.getElementById("status");
-    s.innerHTML = msg + '<br><br><a href="javascript:location.reload()" style="color:#0CA678">Reintentar</a>';
-    s.className = "error";
+var P=document.getElementById("panel"),BAR=document.getElementById("bar"),ACC=document.getElementById("acc");
+var mejor=null,watch=null,fin=false;
+
+function dist(la1,lo1,la2,lo2){
+  var R=6371000,f1=la1*Math.PI/180,f2=la2*Math.PI/180;
+  var df=(la2-la1)*Math.PI/180,dl=(lo2-lo1)*Math.PI/180;
+  var a=Math.sin(df/2)*Math.sin(df/2)+Math.cos(f1)*Math.cos(f2)*Math.sin(dl/2)*Math.sin(dl/2);
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function ranking(la,lo){
+  return T.map(function(t){return {n:t.n,d:dist(la,lo,t.la,t.lo),r:t.r};})
+          .sort(function(a,b){return a.d-b.d;});
+}
+function ir(nombre,la,lo){
+  location.href=FORM+"&"+Q_TIENDA+"="+encodeURIComponent(nombre)
+    +"&"+Q_LAT+"="+la.toFixed(6)+"&"+Q_LNG+"="+lo.toFixed(6);
+}
+function medidor(a){
+  var pct=Math.max(0,Math.min(1,(120-a)/120));
+  BAR.style.strokeDashoffset=195*(1-pct);
+  ACC.innerHTML=Math.round(a)+'<small>m</small>';
+}
+function ok(nombre,d,la,lo){
+  fin=true;
+  P.innerHTML='<div class="mark">&#10003;</div><div class="pdesc">Estás en</div>'
+    +'<div class="store">'+nombre+'</div>'
+    +'<div class="meta">a '+Math.round(d)+' m · abriendo formulario</div>';
+  setTimeout(function(){ir(nombre,la,lo);},1100);
+}
+function elegir(cands,la,lo){
+  fin=true;
+  var h='<div class="mark warn">?</div><div class="ptitle">Confirma tu tienda</div>'
+    +'<div class="pdesc">Estás entre varias tiendas cercanas. Toca la tuya.</div><div class="opts">';
+  cands.forEach(function(c,i){
+    h+='<button class="opt" data-i="'+i+'"><span>'+c.n+'</span><span class="d">'+Math.round(c.d)+' m</span></button>';
+  });
+  P.innerHTML=h+'</div>';
+  P.querySelectorAll(".opt").forEach(function(b){
+    b.onclick=function(){ir(cands[+b.dataset.i].n,la,lo);};
+  });
+}
+function fallo(msg){
+  fin=true;
+  P.innerHTML='<div class="mark warn">!</div><div class="ptitle">No pudimos ubicarte</div>'
+    +'<div class="pdesc">'+msg+'</div>'
+    +'<button class="btn" onclick="location.reload()">Intentar de nuevo</button>';
+}
+function resolver(){
+  if(fin)return; if(watch!==null)navigator.geolocation.clearWatch(watch);
+  if(!mejor){fallo("No se recibió señal de GPS. Sal a un punto con vista al cielo y vuelve a intentar.");return;}
+  var la=mejor.coords.latitude,lo=mejor.coords.longitude,acc=mejor.coords.accuracy;
+  var r=ranking(la,lo),p=r[0],s=r[1];
+  if(p.d>Math.max(p.r,150)+acc){
+    fallo("No estás dentro del rango de ninguna tienda. La más cercana es "+p.n+", a "+Math.round(p.d)+" m.");
+    return;
   }
+  var margen=s?s.d-p.d:9999;
+  if(acc<=ACC_MAX&&margen>=MARGEN){ok(p.n,p.d,la,lo);return;}
+  var cands=r.filter(function(t,i){return i<3&&t.d<=p.d+MARGEN*3;});
+  if(cands.length<2)cands=r.slice(0,2);
+  elegir(cands,la,lo);
+}
+if(!navigator.geolocation){fallo("Este dispositivo no permite compartir ubicación. Usa un teléfono con GPS.");}
+else{
+  watch=navigator.geolocation.watchPosition(
+    function(pos){
+      if(fin)return;
+      if(!mejor||pos.coords.accuracy<mejor.coords.accuracy){mejor=pos;medidor(pos.coords.accuracy);}
+      if(pos.coords.accuracy<=15)resolver();
+    },
+    function(e){
+      if(fin||mejor)return;
+      if(e.code===1)fallo("Permiso de ubicación denegado. Actívalo en los ajustes de tu navegador y vuelve a escanear el código.");
+      else if(e.code===2)fallo("Sin señal de GPS. Muévete a un punto con mejor recepción.");
+      else fallo("La búsqueda tardó demasiado. Vuelve a intentar.");
+    },
+    {enableHighAccuracy:true,timeout:20000,maximumAge:0}
+  );
+  setTimeout(resolver,VENTANA);
+}
 </script>
 </body>
 </html>
